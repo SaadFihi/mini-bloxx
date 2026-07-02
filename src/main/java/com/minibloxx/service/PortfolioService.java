@@ -33,6 +33,15 @@ public class PortfolioService {
     }
 
     /**
+     * Creates a new portfolio. Delegates storage to the repository for now.
+     * This is the natural home for future create-time rules (validation,
+     * defaults, auditing) — see the explanation.
+     */
+    public Portfolio createPortfolio(Portfolio portfolio) {
+        return portfolioRepository.save(portfolio);
+    }
+
+    /**
      * Computes the analytics for one portfolio.
      * Returns null if no portfolio has the given id (same contract as findById).
      */

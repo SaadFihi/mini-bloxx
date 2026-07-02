@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Stores portfolios in memory (no database yet).
@@ -19,6 +20,10 @@ import java.util.Map;
 public class PortfolioRepository {
 
     private final Map<Long, Portfolio> portfolios = new LinkedHashMap<>();
+
+    // Generates ids for new portfolios. Starts at 2 because we seed ids 1 and 2,
+    // so the first saved portfolio gets id 3. incrementAndGet() is thread-safe.
+    private final AtomicLong idSequence = new AtomicLong(2);
 
     // Runs once when Spring creates this bean at startup: seed some sample data.
     public PortfolioRepository() {
@@ -44,5 +49,21 @@ public class PortfolioRepository {
     /** Returns the portfolio with the given id, or null if none exists. */
     public Portfolio findById(Long id) {
         return portfolios.get(id);
+    }
+
+    /**
+     * Saves a new portfolio. The SERVER assigns the id (any id sent by the client
+     * is ignored), then stores it and returns the stored copy with its id set.
+     */
+    public Portfolio save(Portfolio portfolio) {
+        Long newId = idSequence.incrementAndGet();
+
+        // Build a fresh Portfolio that carries the server-assigned id but keeps
+        // the client's clientName and positions. (Our model has no id setter,
+        // and this also guarantees we never trust a client-supplied id.)
+        Portfolio saved = new Portfolio(newId, portfolio.getClientName(), portfolio.getPositions());
+
+        portfolios.put(newId, saved);
+        return saved;
     }
 }

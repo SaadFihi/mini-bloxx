@@ -6,9 +6,12 @@ import com.minibloxx.service.PortfolioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -53,5 +56,17 @@ public class PortfolioController {
             return ResponseEntity.notFound().build();  // HTTP 404
         }
         return ResponseEntity.ok(valuation);           // HTTP 200 + JSON body
+    }
+
+    // POST /api/portfolios  -> creates a new portfolio from the JSON request body
+    @PostMapping
+    public ResponseEntity<Portfolio> createPortfolio(@RequestBody Portfolio portfolio) {
+        Portfolio created = portfolioService.createPortfolio(portfolio);
+
+        // The "Location" header tells the client where to find the new resource.
+        URI location = URI.create("/api/portfolios/" + created.getId());
+
+        // 201 Created + the Location header + the created portfolio (with its id).
+        return ResponseEntity.created(location).body(created);
     }
 }
